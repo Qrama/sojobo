@@ -40,13 +40,13 @@ class SojoboRequires(RelationBase):
                 'service_name': service_name,
                 'hosts': [],
             })
-            host = conv.get_remote('hostname')
-            port = conv.get_remote('port')
+            url = conv.get_remote('url')
+            api_dir = conv.get_remote('api_dir')
             api_key = conv.get_remote('api_key')
-            if host and port and api_key:
+            if url and api_key and api_key:
                 service['hosts'].append({
-                    'hostname': host,
-                    'port': port,
-                    'api_key': api_key
+                    'url': url,
+                    'api-dir': api_dir,
+                    'api-key': api_key
                 })
         return [s for s in services.values() if s['hosts']]
