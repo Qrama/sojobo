@@ -18,20 +18,23 @@ from charms.reactive import hook, RelationBase, scopes
 
 
 class SojoboProvides(RelationBase):
-    scope = scopes.GLOBAL
+    scope = scopes.UNIT
 
     @hook('{provides:sojobo}-relation-{joined,changed}')
     def changed(self):
-        self.set_state('{relation_name}.available')
+        conv = self.conversation()
+        conv.remove_state('{relation_name}.removed')
+        conv.set_state('{relation_name}.available')
 
     @hook('{provides:sojobo}-relation-{broken,departed}')
     def broken(self):
-        self.remove_state('{relation_name}.available')
+        conv = self.conversation()
+        conv.remove_state('{relation_name}.available')
+        conv.set_state('{relation_name}.removed')
 
-    def configure(self, url, api_dir, api_key):
-        relation_info = {
-            'url': url,
-            'api-dir': api_dir,
-            'api-key': api_key
-        }
-        self.set_remote(**relation_info)
+    def configure(self, url, api_dir, api_key, user):
+        for conv in self.conversations():
+            conv.set_remote(data={'url': url,
+                                  'api-dir': api_dir,
+                                  'api-key': api_key,
+                                  'user': user})

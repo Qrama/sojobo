@@ -24,29 +24,19 @@ class SojoboRequires(RelationBase):
     @hook('{requires:sojobo}-relation-{joined,changed}')
     def changed(self):
         conv = self.conversation()
-        if conv.get_remote('port') and conv.get_remote('api_key'):
+        if conv.get_remote('url') and conv.get_remote('api-key') and conv.get_remote('api-dir') and conv.get_remote('user'):
+            conv.remove_state('{relation_name}.removed')
             conv.set_state('{relation_name}.available')
 
     @hook('{requires:sojobo}-relation-{departed,broken}')
     def broken(self):
         conv = self.conversation()
         conv.remove_state('{relation_name}.available')
+        conv.set_state('{relation_name}.removed')
 
-    def services(self):
-        services = {}
+    def connection(self):
         for conv in self.conversations():
-            service_name = conv.scope.split('/')[0]
-            service = services.setdefault(service_name, {
-                'service_name': service_name,
-                'hosts': [],
-            })
-            url = conv.get_remote('url')
-            api_dir = conv.get_remote('api_dir')
-            api_key = conv.get_remote('api_key')
-            if url and api_key and api_key:
-                service['hosts'].append({
-                    'url': url,
-                    'api-dir': api_dir,
-                    'api-key': api_key
-                })
-        return [s for s in services.values() if s['hosts']]
+            yield {'url': conv.get_remote('url'),
+                   'api-dir': conv.get_remote('api-dir'),
+                   'api-key': conv.get_remote('api-key'),
+                   'user': conv.get_remote('user')}
